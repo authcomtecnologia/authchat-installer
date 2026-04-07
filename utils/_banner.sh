@@ -18,22 +18,19 @@
 print_banner() {
   clear
 
-
-printf "${GREEN}";
-printf "######   ######   ######   ##  ##   #####    ######   ######   ##  ##   ######   ######\n";
-printf "##  ##     ##     ##       ### ##   ##  ##   ##       ##  ##   ##  ##   ##  ##     ##\n";
-printf "##  ##     ##     ####     ######   ##  ##   ####     ##       ######   ##  ##     ##\n";
-printf "######     ##     ##       ## ###   ##  ##   ##       ##       ##  ##   ######     ##\n";
-printf "##  ##     ##     ##       ##  ##   ##  ##   ##       ##  ##   ##  ##   ##  ##     ##\n";
-printf "##  ##     ##     ######   ##  ##   #####    ######   ######   ##  ##   ##  ##     ##\n";
+printf "${CYAN_LIGHT}";
+printf " ###    ##  ##  ######  ##  ##   ####   ##  ##   ###    ######\n";
+printf "##  ##  ##  ##    ##    ##  ##  ##  ##  ##  ##  ##  ##    ##  \n";
+printf "##  ##  ##  ##    ##    ######  ##      ######  ##  ##    ##  \n";
+printf "######  ##  ##    ##    ##  ##  ##      ##  ##  ######    ##  \n";
+printf "##  ##  ##  ##    ##    ##  ##  ##  ##  ##  ##  ##  ##    ##  \n";
+printf "##  ##   ####     ##    ##  ##   ####   ##  ##  ##  ##    ##  \n";
 
 printf "\n"
 
-printf "Solicite suporte: https://github.com/authcomtecnologia/authchat\n"
-printf "Contrate nossos servidores: https://github.com/authcomtecnologia/authchat\n"
-printf "2025 @ Todos os direitos reservados a https://github.com/authcomtecnologia/authchat\n"
-
-
+printf "Solicite suporte: https://suporte.authcom.com.br\n"
+printf "Contrate nossos servidores: https://authcom.com.br\n"
+printf "2025 @ Todos os direitos reservados a https://authcom.com.br\n"
 
   printf "${NC}";
 
