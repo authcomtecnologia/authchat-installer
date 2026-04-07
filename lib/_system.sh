@@ -1,6 +1,9 @@
 #!/bin/bash
-# 
+#
 # system management
+
+# URL da API de licenciamento Authchat
+AUTHCHAT_API_URL="https://authchat-gateway.authcom.workers.dev"
 
 #######################################
 # creates user
@@ -31,9 +34,6 @@ EOF
 #   None
 #######################################
 system_git_clone() {
-  # URL da API de licenciamento — atualize após o deploy do Cloudflare Worker
-  AUTHCHAT_API_URL="https://authchat-gateway.authcom.workers.dev"
-
   print_banner
   printf "${WHITE} 💻 Validando licença e fazendo download do Authchat...${GRAY_LIGHT}"
   printf "\n\n"

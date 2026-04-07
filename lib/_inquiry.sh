@@ -150,11 +150,52 @@ get_alter_backend_port() {
 
 
 get_chave_ativacao() {
-  print_banner
-  printf "${WHITE} 🔐 Insira a sua Chave de Ativação Authchat:${GRAY_LIGHT}"
-  printf "\n\n"
-  printf "   (Formato: XXXX-XXXX-XXXX-XXXX)\n\n"
-  read -p "> " chave_ativacao
+  while true; do
+    print_banner
+    printf "${WHITE} 🔐 Insira a sua Chave de Ativação Authchat:${GRAY_LIGHT}"
+    printf "\n\n"
+    printf "   (Formato: XXXX-XXXX-XXXX-XXXX)\n\n"
+    read -p "> " chave_ativacao
+
+    # Validate format locally before making any network call
+    if ! echo "$chave_ativacao" | grep -qE '^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$'; then
+      printf "\n${RED} ❌ Formato inválido. Use apenas letras maiúsculas e números (ex: ABCD-1234-EFGH-5678).${NC}\n\n"
+      sleep 2
+      continue
+    fi
+
+    printf "\n${WHITE} 🔍 Verificando licença...${NC}\n\n"
+
+    # Call /validar — read-only check, no usage increment, no Node.js required
+    HTTP_RESPONSE=$(curl -s --max-time 15 \
+      -w "\n%{http_code}" \
+      "${AUTHCHAT_API_URL}/validar?chave=${chave_ativacao}")
+
+    HTTP_BODY=$(printf '%s' "$HTTP_RESPONSE" | head -n -1)
+    HTTP_CODE=$(printf '%s' "$HTTP_RESPONSE" | tail -n 1)
+
+    if [ "$HTTP_CODE" = "200" ]; then
+      CLIENTE=$(printf '%s' "$HTTP_BODY" | grep -o '"cliente":"[^"]*"' | cut -d'"' -f4)
+      printf "${GREEN} ✅ Licença válida! Bem-vindo, ${CLIENTE}.${NC}\n\n"
+      sleep 1
+      break
+    fi
+
+    # Extract error message from JSON without Node.js
+    ERRO=$(printf '%s' "$HTTP_BODY" | grep -o '"erro":"[^"]*"' | cut -d'"' -f4)
+
+    if [ -z "$ERRO" ]; then
+      if [ -z "$HTTP_CODE" ] || [ "$HTTP_CODE" = "000" ]; then
+        ERRO="Servidor de licenças inacessível. Verifique sua conexão com a internet."
+      else
+        ERRO="Erro inesperado (HTTP ${HTTP_CODE}). Contate o suporte."
+      fi
+    fi
+
+    printf "${RED} ❌ Licença inválida: %s${NC}\n\n" "$ERRO"
+    printf "${WHITE} Pressione ENTER para tentar novamente ou Ctrl+C para cancelar.${NC}\n"
+    read -r
+  done
 }
 
 get_urls() {
