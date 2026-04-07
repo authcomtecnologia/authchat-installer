@@ -97,12 +97,44 @@ system_git_clone() {
   # ── Etapa 2: Baixar o código fonte ────────────────────────────────────────
   printf "${WHITE} 📦 Baixando código fonte...${GRAY_LIGHT}\n\n"
 
-  curl -L --progress-bar \
+  # -w "%{http_code}" vai para stdout (capturado); --progress-bar vai para stderr (visível no terminal)
+  HTTP_DL_CODE=$(curl -L \
+    --progress-bar \
     -o /tmp/authchat-install.zip \
-    "${AUTHCHAT_API_URL}/baixar?token=${DL_TOKEN}"
+    -w "%{http_code}" \
+    "${AUTHCHAT_API_URL}/baixar?token=${DL_TOKEN}")
 
-  if [ $? -ne 0 ] || [ ! -s /tmp/authchat-install.zip ]; then
-    printf "${RED} ❌ Falha ao baixar o código fonte. Tente novamente.${NC}\n\n"
+  printf "\n"
+  printf "${WHITE} 📁 Arquivo baixado:${NC}\n"
+  ls -lh /tmp/authchat-install.zip 2>/dev/null || printf "${RED}   (arquivo não encontrado)${NC}\n"
+  printf "\n"
+
+  if [ "$HTTP_DL_CODE" != "200" ]; then
+    # Mostra o erro retornado pelo servidor (JSON com campo "erro")
+    ERRO_DL=$(grep -o '"erro":"[^"]*"' /tmp/authchat-install.zip 2>/dev/null | cut -d'"' -f4)
+    GH_STATUS=$(grep -o '"github_status":[0-9]*' /tmp/authchat-install.zip 2>/dev/null | cut -d':' -f2)
+    if [ -n "$ERRO_DL" ]; then
+      printf "${RED} ❌ Erro no download (HTTP ${HTTP_DL_CODE}): %s${NC}\n\n" "$ERRO_DL"
+      if [ -n "$GH_STATUS" ]; then
+        printf "${RED}    → GitHub retornou HTTP ${GH_STATUS}. Verifique o GITHUB_TOKEN do Worker.${NC}\n\n"
+      fi
+    else
+      printf "${RED} ❌ Falha ao baixar o código fonte (HTTP ${HTTP_DL_CODE}).${NC}\n"
+      printf "${GRAY_LIGHT}    Resposta: $(head -c 300 /tmp/authchat-install.zip 2>/dev/null)${NC}\n\n"
+    fi
+    exit 1
+  fi
+
+  if [ ! -s /tmp/authchat-install.zip ]; then
+    printf "${RED} ❌ Arquivo baixado está vazio. Contate o suporte.${NC}\n\n"
+    exit 1
+  fi
+
+  # Valida magic bytes do ZIP: arquivos ZIP sempre começam com "PK" (bytes 50 4B)
+  MAGIC=$(od -A n -N 2 -t x1 /tmp/authchat-install.zip 2>/dev/null | tr -d ' \n')
+  if [ "$MAGIC" != "504b" ]; then
+    printf "${RED} ❌ Arquivo baixado não é um ZIP válido (magic bytes: ${MAGIC}).${NC}\n"
+    printf "${GRAY_LIGHT}    Conteúdo recebido: $(head -c 300 /tmp/authchat-install.zip 2>/dev/null)${NC}\n\n"
     exit 1
   fi
 
