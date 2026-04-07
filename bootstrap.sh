@@ -34,5 +34,8 @@ git clone --depth=1 "$REPO_URL" "$INSTALL_DIR" >/dev/null 2>&1 || {
 }
 
 # ── Executa o instalador principal ──────────────────────────────────────────
+# </dev/tty reconecta o stdin ao terminal real, necessário porque quando o
+# script chega aqui via "curl | bash" o stdin está ocupado pela pipe e os
+# comandos `read` dos menus receberiam EOF imediatamente, fechando o menu.
 chmod +x "$INSTALL_DIR/install_primaria"
-bash "$INSTALL_DIR/install_primaria"
+bash "$INSTALL_DIR/install_primaria" </dev/tty
