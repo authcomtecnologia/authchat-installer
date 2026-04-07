@@ -54,6 +54,7 @@ backend_set_env() {
   frontend_url=https://$frontend_url
 
 sudo su - deploy << EOF
+  mkdir -p /home/deploy/${instancia_add}/backend
   cat <<[-]EOF > /home/deploy/${instancia_add}/backend/.env
 NODE_ENV=
 BACKEND_URL=${backend_url}
@@ -100,7 +101,7 @@ backend_node_dependencies() {
   sleep 2
 
   sudo su - deploy <<EOF
-  cd /home/deploy/${instancia_add}/backend
+  cd /home/deploy/${instancia_add}/backend || exit 1
   npm install --force
 EOF
 
@@ -120,7 +121,7 @@ backend_node_build() {
   sleep 2
 
   sudo su - deploy <<EOF
-  cd /home/deploy/${instancia_add}/backend
+  cd /home/deploy/${instancia_add}/backend || exit 1
   npm run build
 EOF
 
@@ -140,10 +141,10 @@ backend_update() {
   sleep 2
 
   sudo su - deploy <<EOF
-  cd /home/deploy/${empresa_atualizar}
+  cd /home/deploy/${empresa_atualizar} || exit 1
   pm2 stop ${empresa_atualizar}-backend
   git pull
-  cd /home/deploy/${empresa_atualizar}/backend
+  cd /home/deploy/${empresa_atualizar}/backend || exit 1
   npm install
   npm update -f
   npm install @types/fs-extra
@@ -172,7 +173,7 @@ backend_db_migrate() {
   sleep 2
 
   sudo su - deploy <<EOF
-  cd /home/deploy/${instancia_add}/backend
+  cd /home/deploy/${instancia_add}/backend || exit 1
   npx sequelize db:migrate
 EOF
 
@@ -192,7 +193,7 @@ backend_db_seed() {
   sleep 2
 
   sudo su - deploy <<EOF
-  cd /home/deploy/${instancia_add}/backend
+  cd /home/deploy/${instancia_add}/backend || exit 1
   npx sequelize db:seed:all
 EOF
 
@@ -213,7 +214,7 @@ backend_start_pm2() {
   sleep 2
 
   sudo su - deploy <<EOF
-  cd /home/deploy/${instancia_add}/backend
+  cd /home/deploy/${instancia_add}/backend || exit 1
   pm2 start dist/server.js --name ${instancia_add}-backend
 EOF
 

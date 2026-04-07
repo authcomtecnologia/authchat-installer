@@ -15,7 +15,7 @@ frontend_node_dependencies() {
   sleep 2
 
   sudo su - deploy <<EOF
-  cd /home/deploy/${instancia_add}/frontend
+  cd /home/deploy/${instancia_add}/frontend || exit 1
   npm install --force
 EOF
 
@@ -35,7 +35,7 @@ frontend_node_build() {
   sleep 2
 
   sudo su - deploy <<EOF
-  cd /home/deploy/${instancia_add}/frontend
+  cd /home/deploy/${instancia_add}/frontend || exit 1
   npm run build
 EOF
 
@@ -55,10 +55,10 @@ frontend_update() {
   sleep 2
 
   sudo su - deploy <<EOF
-  cd /home/deploy/${empresa_atualizar}
+  cd /home/deploy/${empresa_atualizar} || exit 1
   pm2 stop ${empresa_atualizar}-frontend
   git pull
-  cd /home/deploy/${empresa_atualizar}/frontend
+  cd /home/deploy/${empresa_atualizar}/frontend || exit 1
   npm install
   rm -rf build
   npm run build
@@ -88,6 +88,7 @@ frontend_set_env() {
   backend_url=https://$backend_url
 
 sudo su - deploy << EOF
+  mkdir -p /home/deploy/${instancia_add}/frontend
   cat <<[-]EOF > /home/deploy/${instancia_add}/frontend/.env
 REACT_APP_BACKEND_URL=${backend_url}
 REACT_APP_HOURS_CLOSE_TICKETS_AUTO = 24
@@ -127,7 +128,7 @@ frontend_start_pm2() {
   sleep 2
 
   sudo su - deploy <<EOF
-  cd /home/deploy/${instancia_add}/frontend
+  cd /home/deploy/${instancia_add}/frontend || exit 1
   pm2 start server.js --name ${instancia_add}-frontend
   pm2 save
 EOF

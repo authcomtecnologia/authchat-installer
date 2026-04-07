@@ -111,17 +111,47 @@ system_git_clone() {
 
   rm -rf /tmp/authchat-extract
   mkdir -p /tmp/authchat-extract
-  unzip -q /tmp/authchat-install.zip -d /tmp/authchat-extract/
+
+  unzip -q /tmp/authchat-install.zip -d /tmp/authchat-extract/ || {
+    printf "${RED} ❌ Falha ao extrair o pacote baixado. Tente novamente.${NC}\n\n"
+    exit 1
+  }
 
   # O ZIP do GitHub cria um diretório com o formato: owner-repo-sha/
   EXTRACTED_DIR=$(ls /tmp/authchat-extract/ | head -1)
 
-  sudo su - root <<EOF
-  mkdir -p /home/deploy/${instancia_add}
-  cp -r /tmp/authchat-extract/${EXTRACTED_DIR}/codatendechat-mainatualizado/. /home/deploy/${instancia_add}/
-  chown -R deploy:deploy /home/deploy/${instancia_add}
+  if [ -z "$EXTRACTED_DIR" ]; then
+    printf "${RED} ❌ Extração resultou em diretório vazio. Contate o suporte.${NC}\n\n"
+    exit 1
+  fi
+
+  EXTRACTED_APP="/tmp/authchat-extract/${EXTRACTED_DIR}/codatendechat-mainatualizado"
+
+  if [ ! -d "$EXTRACTED_APP" ]; then
+    printf "${RED} ❌ Estrutura do pacote inválida (codatendechat-mainatualizado não encontrado).${NC}\n\n"
+    exit 1
+  fi
+
+  # Remove instalação anterior e move o código para o destino final
+  # mv é mais confiável que cp -r: atômico e falha visivelmente se o source não existe
+  rm -rf "/home/deploy/${instancia_add}"
+  mv "$EXTRACTED_APP" "/home/deploy/${instancia_add}"
+
+  # Valida que backend e frontend estão presentes antes de continuar
+  if [ ! -d "/home/deploy/${instancia_add}/backend" ]; then
+    printf "${RED} ❌ Diretório backend não encontrado em /home/deploy/${instancia_add}/. Abortando.${NC}\n\n"
+    exit 1
+  fi
+
+  if [ ! -d "/home/deploy/${instancia_add}/frontend" ]; then
+    printf "${RED} ❌ Diretório frontend não encontrado em /home/deploy/${instancia_add}/. Abortando.${NC}\n\n"
+    exit 1
+  fi
+
+  chown -R deploy:deploy "/home/deploy/${instancia_add}"
   rm -rf /tmp/authchat-install.zip /tmp/authchat-extract
-EOF
+
+  printf "${GREEN} ✅ Código instalado em /home/deploy/${instancia_add}${NC}\n\n"
 
   sleep 2
 }
